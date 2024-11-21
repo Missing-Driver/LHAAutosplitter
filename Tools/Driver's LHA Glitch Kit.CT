@@ -41,8 +41,8 @@ if syntaxcheck then return end
 [ENABLE]
 local gameAddress = getAddress("LegoHorizonAdventures-Win64-Shipping.exe")
 
-local gengine = readPointer(gameAddress + 0x88D6808)
-local gworld = readPointer(gameAddress + 0x88D9698)
+local gengine = readPointer(gameAddress + 0x8918FE8)
+local gworld = readPointer(gameAddress + 0x891BE78)
 local character = readPointer(gengine + 0x1088)
 character = readPointer(character + 0x38)
 character = readPointer(character + 0x0)
@@ -61,6 +61,7 @@ globalTimeDilation = globalTimeDilation + 0x3C8
 
 
 registerSymbol("GEngine", gengine, true)
+registerSymbol("GWorld", gworld, true)
 registerSymbol("NoClip", noClip, true)
 registerSymbol("charTimeDilation", characterTimeDilation, true)
 registerSymbol("jumpTrigger", jumpAction, true)
@@ -69,6 +70,7 @@ registerSymbol("globTimeDilation", globalTimeDilation, true)
 
 [DISABLE]
 unregisterSymbol(GEngine)
+unregisterSymbol(GWorld)
 unregisterSymbol(NoClip)
 unregisterSymbol(charTimeDilation)
 unregisterSymbol(jumpTrigger)
@@ -159,7 +161,7 @@ unregisterSymbol(globTimeDilation)
                         </CheatEntry>
                         <CheatEntry>
                           <ID>8</ID>
-                          <Description>"Jump"</Description>
+                          <Description>"Jump (set value to 4 to jump)"</Description>
                           <ShowAsHex>1</ShowAsHex>
                           <ShowAsSigned>0</ShowAsSigned>
                           <VariableType>Byte</VariableType>
@@ -173,21 +175,6 @@ unregisterSymbol(globTimeDilation)
                     </CheatEntry>
                   </CheatEntries>
                 </CheatEntry>
-                <CheatEntry>
-                  <ID>19</ID>
-                  <Description>"No clip Raw"</Description>
-                  <ShowAsHex>1</ShowAsHex>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Byte</VariableType>
-                  <Address>+1088</Address>
-                  <Offsets>
-                    <Offset>5C</Offset>
-                    <Offset>2E8</Offset>
-                    <Offset>30</Offset>
-                    <Offset>0</Offset>
-                    <Offset>38</Offset>
-                  </Offsets>
-                </CheatEntry>
               </CheatEntries>
             </CheatEntry>
             <CheatEntry>
@@ -197,14 +184,12 @@ unregisterSymbol(globTimeDilation)
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>8 Bytes</VariableType>
-              <Address>"LegoHorizonAdventures-Win64-Shipping.exe"+88D9698</Address>
-              <Offsets>
-                <Offset>0</Offset>
-              </Offsets>
+              <Address>GWorld</Address>
               <CheatEntries>
                 <CheatEntry>
                   <ID>10</ID>
                   <Description>"World settings"</Description>
+                  <Options moManualExpandCollapse="1"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>8 Bytes</VariableType>
@@ -224,35 +209,27 @@ unregisterSymbol(globTimeDilation)
                     </CheatEntry>
                   </CheatEntries>
                 </CheatEntry>
-                <CheatEntry>
-                  <ID>27</ID>
-                  <Description>"Global time dilation"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>+170</Address>
-                  <Offsets>
-                    <Offset>3C8</Offset>
-                    <Offset>2A0</Offset>
-                    <Offset>0</Offset>
-                  </Offsets>
-                </CheatEntry>
               </CheatEntries>
             </CheatEntry>
             <CheatEntry>
               <ID>13</ID>
               <Description>"Scripts"</Description>
               <Options moManualExpandCollapse="1" moDeactivateChildrenAsWell="1"/>
+              <Color>0080FF</Color>
               <GroupHeader>1</GroupHeader>
               <CheatEntries>
                 <CheatEntry>
                   <ID>12</ID>
                   <Description>"Infinite jumps"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
+-- Sets jump address to 0x4 (jump flag on)
 function jump(sender)
   writeBytes(getAddress('jumpTrigger'), 0x4)
 end
+-- Binds the jump action to SPACE BAR
 htk1 = createHotkey(jump, VK_SPACE)
 
 [DISABLE]
@@ -263,18 +240,18 @@ htk1.destroy()
                 <CheatEntry>
                   <ID>14</ID>
                   <Description>"Moon walk (NoClip suuuuper slow)"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
--- Activates infinite jumps
+-- Sets jump address to 0x4 (jump flag on)
 function jump(sender)
-  -- addressList.getMemoryRecordByDescription('Jump &lt;DO NOT RENAME&gt;').Value=0X4
   writeBytes(getAddress('jumpTrigger'), 0x4)
 end
 htk1 = createHotkey(jump, VK_SPACE)
 
 function freeze(sender)
--- Reduces character's time speed in half:
+-- Reduces character's time speed to 1/4 (0.25):
   writeFloat(getAddress('charTimeDilation'), 0.25)
   -- Activates no clip:
   writeBytes(getAddress('NoClip'), 0x4B)
@@ -287,25 +264,25 @@ timer_onTimer(FreezeTimer, freeze)
 -- Resets everything:
 htk1.destroy()
 timer_setEnabled(FreezeTimer, false)
-writeFloat(getAddress('charTimeDilation'), 1)
-writeBytes(getAddress('NoClip'), 0xCB)
+writeFloat(getAddress('charTimeDilation'), 1) -- Default time dilation
+writeBytes(getAddress('NoClip'), 0xCB) -- Resets NoClip bit to 0
 </AssemblerScript>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>23</ID>
                   <Description>"NoClip [With low gravity]"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
--- Activates infinite jumps
+-- Sets jump address to 0x4 (jump flag on)
 function jump(sender)
-  -- addressList.getMemoryRecordByDescription('Jump &lt;DO NOT RENAME&gt;').Value=0X4
   writeBytes(getAddress('jumpTrigger'), 0x4)
 end
 htk1 = createHotkey(jump, VK_SPACE)
 
 function freeze(sender)
-  -- Reduces character's time speed in half:
+  -- Reduces character's time speed in half (0.5):
   writeFloat(getAddress('charTimeDilation'), 0.5)
   -- Activates no clip:
   writeBytes(getAddress('NoClip'), 0x4B)
@@ -318,25 +295,25 @@ timer_onTimer(FreezeTimer, freeze)
 -- Resets everything:
 htk1.destroy()
 timer_setEnabled(FreezeTimer, false)
-writeFloat(getAddress('charTimeDilation'), 1)
-writeBytes(getAddress('NoClip'), 0xCB)
+writeFloat(getAddress('charTimeDilation'), 1) -- Default time dilation
+writeBytes(getAddress('NoClip'), 0xCB) -- Resets NoClip bit to 0
 </AssemblerScript>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>22</ID>
                   <Description>"NoClip [Normal gravity]"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
--- Activates infinite jumps
+-- Sets jump address to 0x4 (jump flag on)
 function jump(sender)
-  -- addressList.getMemoryRecordByDescription('Jump &lt;DO NOT RENAME&gt;').Value=0X4
   writeBytes(getAddress('jumpTrigger'), 0x4)
 end
 htk1 = createHotkey(jump, VK_SPACE)
 
+-- Activates no clip:
 function freeze(sender)
-  -- Activates no clip:
   writeBytes(getAddress('NoClip'), 0x4B)
 end
 FreezeTimer = createTimer(nil,true)
@@ -347,18 +324,19 @@ timer_onTimer(FreezeTimer, freeze)
 -- Resets everything:
 htk1.destroy()
 timer_setEnabled(FreezeTimer, false)
-writeBytes(getAddress('NoClip'), 0xCB)
+writeBytes(getAddress('NoClip'), 0xCB) -- Resets NoClip bit to 0
 </AssemblerScript>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>24</ID>
                   <Description>"Speedrunner character"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
--- Activates no clip:
+-- Activates superspeed:
 function freeze(sender)
-  writeFloat(getAddress('charSpeed'), 1000)
+  writeFloat(getAddress('charSpeed'), 1000) -- Speed number
 end
 FreezeTimer = createTimer(nil,true)
 timer_setInterval(FreezeTimer, 500)
@@ -366,35 +344,38 @@ timer_onTimer(FreezeTimer, freeze)
 
 [DISABLE]
 timer_setEnabled(FreezeTimer, false)
-writeFloat(getAddress('charSpeed'), 500)
+writeFloat(getAddress('charSpeed'), 500) -- Default speed number
 </AssemblerScript>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>26</ID>
                   <Description>"Slow motion world"</Description>
+                  <Color>0080FF</Color>
                   <VariableType>Auto Assembler Script</VariableType>
                   <AssemblerScript>{$lua}
 [ENABLE]
--- Activates no clip:
-writeFloat(getAddress('globTimeDilation'), 0.25)
+-- Sets entire world's time dilation to 1/10 (0.1)
+writeFloat(getAddress('globTimeDilation'), 0.1)
 
 [DISABLE]
-writeFloat(getAddress('globTimeDilation'), 1)
+writeFloat(getAddress('globTimeDilation'), 1) -- -- Default time dilation
 </AssemblerScript>
                 </CheatEntry>
               </CheatEntries>
             </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>29</ID>
+          <Description>"Debug"</Description>
+          <Options moManualExpandCollapse="1"/>
+          <GroupHeader>1</GroupHeader>
+          <CheatEntries>
             <CheatEntry>
-              <ID>29</ID>
-              <Description>"Debug"</Description>
-              <Options moManualExpandCollapse="1"/>
-              <GroupHeader>1</GroupHeader>
-              <CheatEntries>
-                <CheatEntry>
-                  <ID>2</ID>
-                  <Description>"Fetch base addresses"</Description>
-                  <VariableType>Auto Assembler Script</VariableType>
-                  <AssemblerScript>{$lua}
+              <ID>2</ID>
+              <Description>"Fetch base addresses (For when the game gets updated)"</Description>
+              <VariableType>Auto Assembler Script</VariableType>
+              <AssemblerScript>{$lua}
 if syntaxcheck then return end
 [ENABLE]
   print(string.format("Fetching Base Addresses..."))
@@ -402,16 +383,14 @@ if syntaxcheck then return end
   local aobList = {
   "48 89 05 ?? ?? ?? ?? 48 ?? ?? 74 ?? E8 ?? ?? ?? ?? 48 8D 4C",
   "48 8B 05 ?? ?? ?? ?? 48 8B 80 28 02 00 00",
-  "48 8D 0D ?? ?? ?? ?? E8 70 ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 48 83 C4 28 E9 ?? ?? ?? ?? 48 83 EC 28 48 8D 0D ?? ?? ?? ?? FF 15",
   "48 8D 05 ?? ?? ?? ?? EB 13 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? 01 0F 28 ?? ?? ?? 4C 8D",
-  "48 8D 15 ?? ?? ?? ?? 41 B8 00 00 00 0B 48 ?? ?? FF ?? ?? ?? ?? ?? 48 8B 05"
+  -- "48 8D 0D ?? ?? ?? ?? E8 70 ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 48 83 C4 28 E9 ?? ?? ?? ?? 48 83 EC 28 48 8D 0D ?? ?? ?? ?? FF 15"
   }
   local aobNames = {
   "GEngine",
   "GWorld",
-  "GObjects",
   "FNamePool",
-  "test"
+  -- "GObjects"
   }
   local xbase = readInteger(process)and GetAddress(process)
   print(string.format("Base: %X",xbase))
@@ -427,50 +406,56 @@ if syntaxcheck then return end
         local address = (instruct + distance + instructSize) - xbase
         print(string.format("%s: %s+%X",aobNames[i],process,address))
   end
+-- GObjects:
+local aob = AOBScan("48 83 EC 28 48 8D 0D ?? ?? ?? ?? E8 70 ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 48 83 C4 28 E9 ?? ?? ?? ?? 48 83 EC 28 48 8D", "+X*C*W")
+local instruct = getAddressSafe(aob[0]) + 4
+local distance = getAddressSafe(instruct)+3
+distance = readInteger(distance)
+local instructSize = getInstructionSize(instruct)
+local address = (instruct + distance + instructSize) - xbase
+print(string.format("%s: %s+%X","GOjects",process,address))
 
 
 
 [DISABLE]
 
 </AssemblerScript>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>18</ID>
-                  <Description>"Player"</Description>
-                  <ShowAsHex>1</ShowAsHex>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Byte</VariableType>
-                  <Address>NoClip</Address>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>20</ID>
-                  <Description>"Char. time dilation"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>charTimeDilation</Address>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>21</ID>
-                  <Description>"Jump Action address"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Byte</VariableType>
-                  <Address>jumpTrigger</Address>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>25</ID>
-                  <Description>"Character Speed"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>charSpeed</Address>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>28</ID>
-                  <Description>"Global time dilation"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>globTimeDilation</Address>
-                </CheatEntry>
-              </CheatEntries>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>18</ID>
+              <Description>"NoClip"</Description>
+              <ShowAsHex>1</ShowAsHex>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>NoClip</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>20</ID>
+              <Description>"Char. time dilation"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>charTimeDilation</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>21</ID>
+              <Description>"Jump Action address"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>jumpTrigger</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>25</ID>
+              <Description>"Character Speed"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>charSpeed</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>28</ID>
+              <Description>"Global time dilation"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>globTimeDilation</Address>
             </CheatEntry>
           </CheatEntries>
         </CheatEntry>
