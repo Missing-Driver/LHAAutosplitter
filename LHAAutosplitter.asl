@@ -1,21 +1,21 @@
-state("LegoHorizonAdventures-Win64-Shipping", "v1.1.0.0-Steam"){
+state("LegoHorizonAdventures-Win64-Shipping", "v1.2.0.0-Steam"){
     // GWorld, levelFname
-    ulong levelFName : 0x88D9698, 0x18;
+    ulong levelFName : 0x891BE78, 0x18;
     // GWorld, Levels, Levels[1], WorldContainer, sceneFName
-    ulong sceneFName : 0x88D9698, 0x170, 0x8, 0x20, 0x18;
+    ulong sceneFName : 0x891BE78, 0x170, 0x8, 0x20, 0x18;
 
     // GEngine, GameInstance, 0x108, 0x1D0, goldBricks
-    int goldBricks : 0x88D6808, 0x1088, 0x108, 0x1D0, 0x2A4;
+    int goldBricks : 0x8918FE8, 0x1088, 0x108, 0x1D0, 0x2A4;
 
     // Loading flags:
     // GEngine, GameInstance, 0x108, GlowMusicSubsystem, GlowMusicGameplayHandler, Flag
-    bool isPaused : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x1E6;
-    bool isCinematic : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x1E7;
-    bool isConversation : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x1E9;
-    bool isLoading : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x200;
-    bool isFadeToBlack : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x201;
-    bool isBetweenWorlds : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x202;
-    bool isWorldTransition : 0x88D6808, 0x1088, 0x108, 0x368, 0x288, 0x203;
+    bool isPaused : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x1EE;
+    bool isCinematic : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x1EF;
+    bool isConversation : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x1F1;
+    bool isLoading : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x208;
+    bool isFadeToBlack : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x209;
+    bool isBetweenWorlds : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x20A;
+    bool isWorldTransition : 0x8918FE8, 0x1088, 0x108, 0x368, 0x288, 0x20B;
 }
 
 // Script is executed
@@ -28,6 +28,8 @@ startup{
     // Contains de autosplitter settings:
     dynamic[,] _settings = {
         // ID prefixes:
+        // SSS: Start on scene start (currently not used)
+        // SSE: Start on scene ending
         // WS: Split on world start (currently not used)
         // WE: Split on world ending
         // SS: Split on scene start (currently not used)
@@ -35,7 +37,8 @@ startup{
         // GB: Split on gold brick
         // RB: Split on red brick (currently not used)
         // ID, Label, Tool tip, Parent ID, Default setting?
-        {"m_quests", "Main quests", null, null, true},
+        {"SSE_StarterFrontendMap", "Start", "Starts the autosplitter automatically after starting a playthrough", null, true},
+        {"m_quests", "Any%", null, null, true},
             {"WE_Prologue_P", "Prologue", "After completing the prologue", "m_quests", true},
             {"ch1", "Ch. 1- Rescuing the Nora", null, "m_quests", true},
                 {"GB_B1_Room_003_Lighting_Day", "Into the woods", "", "ch1", true},
@@ -81,23 +84,23 @@ startup{
         return hexHashString;
     });
 
-    // Default variables (Patch 1.1.0.0 Steam version):
-    version = "v1.1.0.0-Steam";
-    vars.FNamePoolOffset = 0x86B6DC0;
+    // Default variables (Patch 1.2.0.0 Steam version):
+    version = "v1.2.0.0-Steam";
+    vars.FNamePoolOffset = 0x86F9500;
     // Determines the running game version and initialize variables acordingly:
     vars.Funcs.setGameVersion = (Action<string>)((hash) => {
         // TODO: add EpicGames version:
         if(hash == "<EPIC_GAMES_HASH_STRING>"){
             // Update variables
-        // Patch 1.1.0.0 Steam:
-        }else if(hash == "A57CBB917BB88D7DBFD914B077C06649C4B31065F2DB0C7781AD82B55652C085"){
+        // Patch 1.2.0.0 Steam:
+        }else if(hash == "5CD97AF9CCAE47FB6A4534DEC00BBD6FE8F9FB1AD752BB6571F364C1E65CAEDC"){
             // Don't do anything, the default variables are the Steam ones...
-            print("Detected game version: 1.1.0.0-Steam");
+            print("Detected game version: 1.2.0.0-Steam");
         }
         else{
             // If no version was identified, show a warning message:
             MessageBox.Show(
-                "The Autosplitter could not identify the game version, the default version was set to v1.1.0.0-Steam.\nIf this is not the version of your game, the Autosplitter might not work properly.",
+                "The Autosplitter could not identify the game version, the default version was set to " + version + ".\nIf this is not the version of your game, the Autosplitter might not work properly.",
                 "HFW Autosplitter",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning
@@ -137,10 +140,9 @@ init{
             // current.isCinematic || // Cinematics
             // current.isConversation || // Conversations
             current.isLoading || // General game loading
-            current.isFadeToBlack || // That brief moment when the screen fades in or out
-            // Redundant flags:
-            // current.isBetweenWorlds || // Scene and world transitions
-            // current.isWorldTransition || // World transitions
+            // current.isFadeToBlack || // That brief moment when the screen fades in or out
+            current.isBetweenWorlds || // Scene and world transitions
+            current.isWorldTransition || // World transitions
             // Title screen:
             vars.Funcs.FNameToString(current.levelFName) == "StarterFrontendMap";
     });
@@ -152,7 +154,7 @@ init{
             settings[splitName] &&
             // Splits only once per checkpoint:
             !vars.checkpoints[splitName].reachedBefore
-        ){
+        ){ 
             vars.checkpoints[splitName].reachedBefore = true;
             print("SPLIT: " + splitName);
             return true;
@@ -164,8 +166,6 @@ init{
 
     // Unreal Engine's structures ********************************************
     IntPtr FNamePool = modules.First().BaseAddress + vars.FNamePoolOffset;
-    // IntPtr GEngine = modules.First().BaseAddress + vars.GEngineOffset;
-    // IntPtr GWorld = modules.First().BaseAddress + vars.GWorldOffset;
     // ***********************************************************************
 
     // Takes an FName object and returns the asociated string.
@@ -194,6 +194,15 @@ isLoading{
 }
 
 start{
+    if(old.levelFName != current.levelFName){
+        var currentWorldName = vars.Funcs.FNameToString(current.levelFName);
+        var oldWorldName = vars.Funcs.FNameToString(old.levelFName);
+        print("\n\nWorld changed: " + currentWorldName);
+        // World ending starting points:
+        if(vars.Funcs.isSplit("SSE_" + oldWorldName)){
+            return true;
+        }
+    }
 }
 
 split{
